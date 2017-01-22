@@ -1,0 +1,16 @@
+﻿<Window x:Class="PingApp.GraphWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PingApp"
+        mc:Ignorable="d"
+        Name="w"
+        Title="GraphWindow" Height="50" Width="100" Loaded="Window_Loaded" SizeToContent="Manual" ResizeMode="NoResize" Cursor="Arrow" WindowStyle="None" SnapsToDevicePixels="True" Background="#70000000" Opacity="1" Topmost="True" AllowsTransparency="True" ShowInTaskbar="False">
+    <Grid Name="g" Width="{Binding w.Width}" Height="{Binding w.Height}" Background="Transparent" Margin="0">
+        <Rectangle Name="avgLine" Width="{Binding c.Width}" Margin="0" Fill="#40ffffff" Height="2" VerticalAlignment="Top" />
+        <Rectangle Name="scanLine" Width="2" Margin="-2,0,0,0" Fill="#40ffffff" HorizontalAlignment="Left" VerticalAlignment="Stretch" />
+        <Canvas Name="c" Width="{Binding w.Width}" Height="{Binding w.Height}" Background="Transparent" HorizontalAlignment="Stretch" Margin="0"/>
+        <TextBlock Name="pl" Foreground="White" Text="-" VerticalAlignment="Top" FontSize="9" FontWeight="DemiBold"  HorizontalAlignment="Right" Margin="3" SnapsToDevicePixels="True"/>
+    </Grid>
+</Window>

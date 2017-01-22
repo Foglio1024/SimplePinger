@@ -1,0 +1,16 @@
+﻿<Window x:Class="PingApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PingApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="Auto" Width="50" ShowInTaskbar="False" Loaded="Window_Loaded" WindowStyle="None" ResizeMode="NoResize" IsHitTestVisible="False" Topmost="True" AllowsTransparency="True" Background="#00ffffff" Top="1060" SizeToContent="Height">
+    <Grid IsHitTestVisible="False" Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Label Name="ping" Grid.Row="1" Content="-" Foreground="#ffd0d0d0" FontWeight="Normal" HorizontalAlignment="Right" FontSize="11" VerticalAlignment="Center" Background="#90000000" Padding="5,0" Margin="0"/>
+        
+    </Grid>
+</Window>
