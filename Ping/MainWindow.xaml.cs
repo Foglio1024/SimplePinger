@@ -41,8 +41,8 @@ namespace PingApp
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            var hwnd = new WindowInteropHelper(this).Handle;
-            TCTNotifier.WindowsServices.SetWindowExTransparent(hwnd);
+            //var hwnd = new WindowInteropHelper(this).Handle;
+            //TCTNotifier.WindowsServices.SetWindowExTransparent(hwnd);
         }
 
 

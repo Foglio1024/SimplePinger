@@ -29,12 +29,28 @@ namespace PingApp
             //    throw new Win32Exception();
             return result;
         }
+        private static IntPtr FindThisWIndow()
+        {
+            var error0 = Marshal.GetLastWin32Error();
+            var result = FindWindow(null, "PingApp");
+            var error = Marshal.GetLastWin32Error();
+            //if (result == IntPtr.Zero && (error != 0))
+            //    throw new Win32Exception();
+            return result;
+        }
 
         public static bool IsTeraActive()
         {
             var teraWindow = FindTeraWindow();
             var activeWindow = GetForegroundWindow();
             return (teraWindow != IntPtr.Zero) && (teraWindow == activeWindow);
+        }
+
+        public static bool IsThisActive()
+        {
+            var thisWindow = FindThisWIndow();
+            var activeWindow = GetForegroundWindow();
+            return (thisWindow != IntPtr.Zero) && (thisWindow == activeWindow);
         }
     }
 }

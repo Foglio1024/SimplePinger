@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Forms;
+using System.ComponentModel;
 
 namespace PingApp
 {
@@ -21,6 +22,8 @@ namespace PingApp
     public static class UI
     {
         public static Window GW;
+        public static Canvas PingCanvas;
+        public static Rectangle avgLine;
     }
 
     /// <summary>
@@ -29,106 +32,37 @@ namespace PingApp
     /// 
     public partial class GraphWindow : Window
     {
-        const int UPDATE_FREQ = 1000;
-        const int RANGE = 500;
-        bool spike;
+        const int UPDATE_FREQ = 10;
         System.Net.NetworkInformation.Ping _ping;
+        Graph ping;
         System.Timers.Timer tm;
+
         long lastPing;
-        List<Ellipse> points;
-        List<Line> lines;
-        int index = 0;
-        int n =1;
-        int avg = 0;
-        int sum = 0;
 
         private void Tm_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
 
-            lastPing = _ping.Send("172.17.145.193").RoundtripTime;
+            lastPing = _ping.Send("google.com").RoundtripTime;
 
             Dispatcher.Invoke(() =>
             {
-                if (index == -1)
-                {
-                    index = points.Count - 1;
-                }
 
-                sum = sum + (int)lastPing;
-                avg = sum / n;
+                ping.Update((int)lastPing);
+                pl.Text = String.Format("{0} ({1}) ms", lastPing.ToString(), ping.Average);
 
-                pl.Text = String.Format("{0} ({1})", lastPing.ToString(), avg);
-                avgLine.Margin = new Thickness(0, ActualHeight - ActualHeight * avg / RANGE, 0, 0);
-
-                points.Last().Margin = new Thickness(points.Last().Margin.Left, ActualHeight - lastPing * ActualHeight / RANGE, 0, 0);
-                if (lastPing > avg * 1.2)
-                {
-                    lines.Last().Stroke = new SolidColorBrush(Colors.Red);
-                    spike = true;
-                }
-                else
-                {
-                    if (spike)
-                    {
-                        spike = false;
-                    }
-                    else
-                    {
-                        lines.Last().Stroke = new SolidColorBrush(Colors.LightGreen);
-                    }
-
-
-                }
-                foreach (var item in points)
-                {
-                    var ind = points.IndexOf(item);
-
-                    if (ind < points.Count - 1) item.Margin = new Thickness(item.Margin.Left, points[ind + 1].Margin.Top, 0, 0);
-
-                    else
-                    {
-                        if (ind < lines.Count - 1)
-                        {
-                            lines[ind + 1].Stroke = new SolidColorBrush(Colors.LightGreen);
-                        }
-                    }
-
-
-                }
-
-
-                foreach (var item in lines)
-                {
-                    var ind = lines.IndexOf(item);
-                    if (ind < points.Count - 1)
-                    {
-                        item.X1 = points[ind].Margin.Left;
-                        item.Y1 = points[ind].Margin.Top;
-                        item.X2 = points[ind + 1].Margin.Left;
-                        item.Y2 = points[ind + 1].Margin.Top;
-
-                        if (ind + 1 < lines.Count)
-                        {
-                            item.Stroke = lines[ind + 1].Stroke;
-                        }
-                    }
-                }
-
-
-                index--;
-                n++;
-
-                if (FocusMonitor.IsTeraActive())
-                {
-                    this.ShowActivated = false;
-                    this.Show();
-                }
-                else
-                {
-                    this.Hide();
-                }
+                //if (FocusMonitor.IsTeraActive() || disableAutoHide)
+                //{
+                //    this.ShowActivated = false;
+                //    this.Show();
+                //}
+                //else
+                //{
+                //    this.Hide();
+                //}
             });
         }
+
+        bool disableAutoHide = true;
 
         NotifyIcon notifyIcon;
 
@@ -140,73 +74,85 @@ namespace PingApp
             notifyIcon.Click += new EventHandler(notifyIcon_Click);
             notifyIcon.DoubleClick += new EventHandler(notifyIcon_DoubleClick);
             notifyIcon.Icon = new System.Drawing.Icon(Environment.CurrentDirectory + "\\network-icon-1877-16x16.ico");
+
+            this.Top = Properties.Settings.Default.Y;
+            this.Left = Properties.Settings.Default.X;
+
+            MouseDown += Window_MouseDown;
+            MouseUp += Window_MouseUp;
+
         }
 
+
+
+
+
+
+
+
+        bool transparent = true;
+
+        private void Window_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                disableAutoHide = false;
+            }
+
+        }
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                //disableAutoHide = true;
+                DragMove();
+            }    
+        }
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
         {
             notifyIcon.Visible = false;
+
+            Properties.Settings.Default.Y = Top;
+            Properties.Settings.Default.X = Left;
+
+            Properties.Settings.Default.Save();
+
             Environment.Exit(0);
         }
-
         private void notifyIcon_Click(object sender, EventArgs e)
         {
-            if (this.IsVisible)
-            {
-                this.Hide();
-            }
-            else
-            {
-                this.Show();
-            }
+            var hwnd = new WindowInteropHelper(this).Handle;
+
+            //if (transparent)
+            //{
+            //    TCTNotifier.WindowsServices.UnsetWindowExTransparent(hwnd);
+            //    transparent = false;
+            //}
+            //else
+            //{
+            //    TCTNotifier.WindowsServices.SetWindowExTransparent(hwnd);
+            //    transparent = true;
+            //}
+
 
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             UI.GW = this;
+            UI.PingCanvas = c;
+            UI.avgLine = avgLine;
             _ping = new Ping();
+            ping = new Graph();
+
             tm = new System.Timers.Timer(UPDATE_FREQ);
             tm.Elapsed += Tm_Elapsed;
             tm.Enabled = true;
-            points = new List<Ellipse>();
-            lines = new List<Line>();
-
-            for (int i = 0; i < this.Width; i++)
-            {
-                var ell = new Ellipse
-                {
-                    Margin = new Thickness(i, ActualHeight+2, 0, 0),
-                    //Fill = new SolidColorBrush(Colors.White),
-                    Height = 2,
-                    Width = 2,
-                    VerticalAlignment = VerticalAlignment.Top,
-                };
-
-                points.Add(ell);
-                c.Children.Add(ell);
-
-                if (i != 0)
-                {
-                    Line l = new Line
-                    {
-                        X1 = points[i - 1].Margin.Left,
-                        Y1 = points[i - 1].Margin.Top,
-                        X2 = points[i].Margin.Left,
-                        Y2 = points[i].Margin.Top,
-                        StrokeThickness = 1,
-                        Stroke = new SolidColorBrush(new Color { A=255, R = 120, G = 200, B = 255 })
-                    };
-                    lines.Add(l);
-                    c.Children.Add(l);
-
-                }
 
 
-            }
-            Top = 0;
-            Left = SystemParameters.PrimaryScreenWidth - Width;
+
             Topmost = true;
-            index = points.Count - 1;
             notifyIcon.Visible = true;
 
             tm.Start();
@@ -215,8 +161,8 @@ namespace PingApp
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            var hwnd = new WindowInteropHelper(this).Handle;
-            TCTNotifier.WindowsServices.SetWindowExTransparent(hwnd);
+            //var hwnd = new WindowInteropHelper(this).Handle;
+            //TCTNotifier.WindowsServices.SetWindowExTransparent(hwnd);
         }
 
     }
